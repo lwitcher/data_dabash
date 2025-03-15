@@ -7,8 +7,22 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/Home.vue')
+    redirect: '/overview'
+  },
+  {
+    path: '/overview',
+    name: 'Overview',
+    component: () => import('../views/Overview.vue')
+  },
+  {
+    path: '/analysis',
+    name: 'Analysis',
+    component: () => import('../views/Analysis.vue')
+  },
+  {
+    path: '/data-list',
+    name: 'DataList',
+    component: () => import('../views/DataList.vue')
   }
 ]
 

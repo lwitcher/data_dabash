@@ -1,52 +1,109 @@
-export const chartData = {
-  // 折线图数据
-  lineChartData: {
-    xAxis: ['1月', '2月', '3月', '4月', '5月', '6月'],
-    series: [
-      {
-        name: '系列1',
-        data: [150, 230, 224, 218, 135, 147]
-      },
-      {
-        name: '系列2',
-        data: [80, 122, 119, 164, 175, 170]
-      },
-      {
-        name: '系列3',
-        data: [70, 67, 91, 148, 120, 105]
-      }
+/**
+ * @description 数据概览的数据
+ */
+export const overviewData = {
+  visitCount: {
+    total: 1234567,
+    increase: 12.5,
+    chartData: {
+      xAxis: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      series: [820, 932, 901, 934, 1290, 1330, 1320]
+    }
+  },
+  activeUsers: {
+    total: 45678,
+    increase: 8.3,
+    chartData: {
+      xAxis: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      series: [420, 532, 501, 534, 790, 830, 820]
+    }
+  },
+  conversionRate: {
+    total: 23.5,
+    increase: -2.1,
+    chartData: {
+      xAxis: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      series: [20, 22, 21, 23, 25, 24, 23.5]
+    }
+  }
+}
+
+/**
+ * @description 统计分析的数据
+ */
+export const analysisData = {
+  userDistribution: {
+    title: '用户分布',
+    data: [
+      { value: 1048, name: '移动端' },
+      { value: 735, name: '桌面端' },
+      { value: 580, name: '平板' },
+      { value: 484, name: '其他' }
     ]
   },
+  timeDistribution: {
+    title: '访问时间分布',
+    xAxis: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
+    series: [320, 120, 780, 920, 860, 720, 280]
+  },
+  categoryDistribution: {
+    title: '内容分类访问',
+    data: [
+      { value: 40, name: '新闻' },
+      { value: 38, name: '视频' },
+      { value: 32, name: '社交' },
+      { value: 30, name: '购物' },
+      { value: 28, name: '游戏' }
+    ]
+  }
+}
 
-  // 饼图数据
-  pieChartData: [
-    { name: '类别1', value: 335 },
-    { name: '类别2', value: 310 },
-    { name: '类别3', value: 234 },
-    { name: '类别4', value: 135 },
-    { name: '类别5', value: 1548 }
+/**
+ * @description 数据列表的数据
+ */
+export const listData = {
+  columns: [
+    { prop: 'date', label: '日期', width: '180' },
+    { prop: 'visits', label: '访问量', width: '180' },
+    { prop: 'users', label: '用户数', width: '180' },
+    { prop: 'conversion', label: '转化率', width: '180' },
+    { prop: 'avgTime', label: '平均停留时间' }
   ],
-
-  // 柱状图数据
-  barChartData: {
-    xAxis: ['产品A', '产品B', '产品C', '产品D', '产品E'],
-    series: [
-      {
-        name: '销量',
-        data: [120, 200, 150, 80, 70]
-      },
-      {
-        name: '收入',
-        data: [100, 180, 140, 90, 60]
-      }
-    ]
-  },
-
-  // 表格数据
   tableData: [
-    { id: 1, name: '商品1', price: 100, sales: 1234, date: '2024-01-01' },
-    { id: 2, name: '商品2', price: 200, sales: 2345, date: '2024-01-02' },
-    { id: 3, name: '商品3', price: 300, sales: 3456, date: '2024-01-03' }
-    // ... 更多数据
+    {
+      date: '2024-03-15',
+      visits: 1234,
+      users: 890,
+      conversion: '23.5%',
+      avgTime: '00:05:23'
+    },
+    {
+      date: '2024-03-14',
+      visits: 2341,
+      users: 789,
+      conversion: '21.8%',
+      avgTime: '00:04:56'
+    },
+    {
+      date: '2024-03-13',
+      visits: 1890,
+      users: 678,
+      conversion: '24.2%',
+      avgTime: '00:06:12'
+    },
+    {
+      date: '2024-03-12',
+      visits: 2156,
+      users: 945,
+      conversion: '22.7%',
+      avgTime: '00:05:45'
+    },
+    {
+      date: '2024-03-11',
+      visits: 1789,
+      users: 867,
+      conversion: '23.1%',
+      avgTime: '00:05:34'
+    }
   ]
 }
