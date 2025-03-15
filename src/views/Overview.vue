@@ -1,132 +1,179 @@
 <template>
-  <div class="overview">
+  <div class="overview-container">
     <el-row :gutter="20">
       <el-col :span="8">
-        <el-card class="box-card">
+        <el-card class="data-card">
           <template #header>
             <div class="card-header">
               <span>总访问量</span>
-              <el-icon><View /></el-icon>
+              <el-button
+                type="primary"
+                link
+                @click="showHelp('totalVisits')">
+                <el-icon><QuestionFilled /></el-icon>
+              </el-button>
             </div>
           </template>
           <div class="card-content">
-            <h2>{{ formatNumber(data.visitCount.total) }}</h2>
-            <p>较昨日
-              <span :class="data.visitCount.increase >= 0 ? 'increase' : 'decrease'">
-                {{ data.visitCount.increase >= 0 ? '+' : '' }}{{ data.visitCount.increase }}%
-              </span>
-            </p>
+            <div class="value">{{ totalVisits }}</div>
+            <div class="trend" :class="{ 'up': visitsTrend > 0, 'down': visitsTrend < 0 }">
+              {{ Math.abs(visitsTrend) }}%
+              <el-icon><component :is="visitsTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+            </div>
           </div>
         </el-card>
       </el-col>
-
       <el-col :span="8">
-        <el-card class="box-card">
+        <el-card class="data-card">
           <template #header>
             <div class="card-header">
               <span>活跃用户</span>
-              <el-icon><User /></el-icon>
+              <el-button
+                type="primary"
+                link
+                @click="showHelp('activeUsers')">
+                <el-icon><QuestionFilled /></el-icon>
+              </el-button>
             </div>
           </template>
           <div class="card-content">
-            <h2>{{ formatNumber(data.activeUsers.total) }}</h2>
-            <p>较昨日
-              <span :class="data.activeUsers.increase >= 0 ? 'increase' : 'decrease'">
-                {{ data.activeUsers.increase >= 0 ? '+' : '' }}{{ data.activeUsers.increase }}%
-              </span>
-            </p>
+            <div class="value">{{ activeUsers }}</div>
+            <div class="trend" :class="{ 'up': usersTrend > 0, 'down': usersTrend < 0 }">
+              {{ Math.abs(usersTrend) }}%
+              <el-icon><component :is="usersTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+            </div>
           </div>
         </el-card>
       </el-col>
-
       <el-col :span="8">
-        <el-card class="box-card">
+        <el-card class="data-card">
           <template #header>
             <div class="card-header">
               <span>转化率</span>
-              <el-icon><TrendCharts /></el-icon>
+              <el-button
+                type="primary"
+                link
+                @click="showHelp('conversionRate')">
+                <el-icon><QuestionFilled /></el-icon>
+              </el-button>
             </div>
           </template>
           <div class="card-content">
-            <h2>{{ data.conversionRate.total }}%</h2>
-            <p>较昨日
-              <span :class="data.conversionRate.increase >= 0 ? 'increase' : 'decrease'">
-                {{ data.conversionRate.increase >= 0 ? '+' : '' }}{{ data.conversionRate.increase }}%
-              </span>
-            </p>
+            <div class="value">{{ conversionRate }}%</div>
+            <div class="trend" :class="{ 'up': conversionTrend > 0, 'down': conversionTrend < 0 }">
+              {{ Math.abs(conversionTrend) }}%
+              <el-icon><component :is="conversionTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+            </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="chart-row">
-      <el-col :span="24">
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <span>访问趋势</span>
-              <el-icon><DataLine /></el-icon>
-            </div>
-          </template>
-          <div class="chart-container" ref="trendChart"></div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <el-card class="chart-card">
+      <template #header>
+        <div class="card-header">
+          <span>访问趋势</span>
+          <el-button
+            type="primary"
+            link
+            @click="showHelp('weeklyTrend')">
+            <el-icon><QuestionFilled /></el-icon>
+          </el-button>
+        </div>
+      </template>
+      <div class="chart-container" ref="chartContainer"></div>
+    </el-card>
+
+    <markdown-dialog
+      v-model:visible="helpVisible"
+      :title="helpTitle"
+      :content="helpContent" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { overviewData } from '../data/chartData'
+import { helpContent } from '../data/helpContent'
+import MarkdownDialog from '../components/MarkdownDialog.vue'
 
-const data = overviewData
-const trendChart = ref(null)
+// 数据
+const totalVisits = ref(12345)
+const visitsTrend = ref(15)
+const activeUsers = ref(3456)
+const usersTrend = ref(-8)
+const conversionRate = ref(25)
+const conversionTrend = ref(12)
 
-/**
- * 格式化数字，添加千位分隔符
- * @param {number} num - 要格式化的数字
- * @returns {string} 格式化后的字符串
- */
-const formatNumber = (num) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
+// 图表相关
+const chartContainer = ref(null)
+let chart = null
 
 onMounted(() => {
-  const chart = echarts.init(trendChart.value)
+  chart = echarts.init(chartContainer.value)
   const option = {
-    tooltip: {
-      trigger: 'axis'
-    },
     xAxis: {
       type: 'category',
-      data: data.visitCount.chartData.xAxis
+      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     },
     yAxis: {
       type: 'value'
     },
     series: [{
-      data: data.visitCount.chartData.series,
+      data: [820, 932, 901, 934, 1290, 1330, 1320],
       type: 'line',
-      smooth: true,
-      areaStyle: {}
+      smooth: true
     }]
   }
   chart.setOption(option)
 
-  // 响应式调整图表大小
-  window.addEventListener('resize', () => {
-    chart.resize()
-  })
+  window.addEventListener('resize', handleResize)
 })
+
+onUnmounted(() => {
+  if (chart) {
+    chart.dispose()
+  }
+  window.removeEventListener('resize', handleResize)
+})
+
+const handleResize = () => {
+  if (chart) {
+    chart.resize()
+  }
+}
+
+// 帮助弹窗相关
+const helpVisible = ref(false)
+const helpTitle = ref('')
+const helpContent = ref('')
+
+const showHelp = (type) => {
+  helpContent.value = helpContent[type]
+  switch (type) {
+    case 'totalVisits':
+      helpTitle.value = '总访问量说明'
+      break
+    case 'activeUsers':
+      helpTitle.value = '活跃用户说明'
+      break
+    case 'conversionRate':
+      helpTitle.value = '转化率说明'
+      break
+    case 'weeklyTrend':
+      helpTitle.value = '访问趋势说明'
+      break
+  }
+  helpVisible.value = true
+}
 </script>
 
 <style scoped>
-.overview {
+.overview-container {
   padding: 20px;
 }
 
-.box-card {
+.data-card {
   margin-bottom: 20px;
 }
 
@@ -141,31 +188,32 @@ onMounted(() => {
   padding: 20px 0;
 }
 
-.card-content h2 {
-  margin: 0;
-  font-size: 28px;
-  color: #333;
+.value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-.card-content p {
-  margin: 10px 0 0;
-  color: #999;
+.trend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
-.increase {
+.trend.up {
   color: #67C23A;
 }
 
-.decrease {
+.trend.down {
   color: #F56C6C;
 }
 
-.chart-row {
+.chart-card {
   margin-top: 20px;
 }
 
 .chart-container {
   height: 400px;
-  width: 100%;
 }
 </style>
