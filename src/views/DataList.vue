@@ -1,209 +1,121 @@
 <template>
-  <div class="datalist-container">
-    <el-card class="table-card">
-      <template #header>
-        <div class="card-header">
-          <div class="header-left">
-            <h3>用户数据列表</h3>
-            <el-button
-              type="primary"
-              link
-              @click="showHelp('dataList')">
-              <el-icon><QuestionFilled /></el-icon>
-            </el-button>
-          </div>
-          <div class="header-right">
-            <el-input
-              v-model="searchQuery"
-              placeholder="搜索用户名/ID/邮箱"
-              class="search-input"
-              clearable
-              @clear="handleSearch"
-              @input="handleSearch">
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-button type="success" @click="exportData">
-              <el-icon><Download /></el-icon>
-              导出数据
-            </el-button>
-          </div>
-        </div>
-      </template>
-
-      <div class="filter-section">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-select
-              v-model="filters.status"
-              placeholder="用户状态"
-              clearable
-              @change="handleFilter">
-              <el-option label="活跃" value="active" />
-              <el-option label="非活跃" value="inactive" />
-              <el-option label="已禁用" value="disabled" />
-            </el-select>
-          </el-col>
-          <el-col :span="6">
-            <el-select
-              v-model="filters.role"
-              placeholder="用户角色"
-              clearable
-              @change="handleFilter">
-              <el-option label="管理员" value="admin" />
-              <el-option label="普通用户" value="user" />
-              <el-option label="访客" value="guest" />
-            </el-select>
-          </el-col>
-          <el-col :span="6">
-            <el-date-picker
-              v-model="filters.dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              @change="handleFilter" />
-          </el-col>
-        </el-row>
+  <div class="data-list-container">
+    <!-- 标题和操作区域 -->
+    <div class="header-actions">
+      <h2 class="page-title">数据列表</h2>
+      <div class="header-buttons">
+        <el-button type="primary" @click="exportData">
+          <el-icon><Download /></el-icon>
+          导出数据
+        </el-button>
+        <el-button @click="showHelp">
+          <el-icon><QuestionFilled /></el-icon>
+          帮助
+        </el-button>
       </div>
+    </div>
 
-      <el-table
-        :data="filteredTableData"
-        style="width: 100%"
-        v-loading="loading"
-        @sort-change="handleSortChange">
-        <el-table-column prop="id" label="ID" sortable="custom" width="80" />
-        <el-table-column prop="username" label="用户名" sortable="custom" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="role" label="角色">
-          <template #default="scope">
-            <el-tag :type="getRoleType(scope.row.role)">
-              {{ scope.row.role }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="lastLogin" label="最后登录时间" sortable="custom">
-          <template #default="scope">
-            {{ formatDate(scope.row.lastLogin) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="actions" label="操作" width="150">
-          <template #default="scope">
-            <el-button type="primary" link @click="handleEdit(scope.row)">
-              编辑
-            </el-button>
-            <el-button type="danger" link @click="handleDelete(scope.row)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <!-- 查询条件区域 -->
+    <div class="search-section">
+      <el-input
+        v-model="searchQuery"
+        placeholder="搜索用户名/ID/邮箱"
+        class="search-input"
+        clearable
+        @input="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><Search /></el-icon>
+        </template>
+      </el-input>
+      <el-select v-model="filters.status" placeholder="用户状态" clearable @change="handleFilterChange">
+        <el-option label="活跃" value="active" />
+        <el-option label="非活跃" value="inactive" />
+        <el-option label="已禁用" value="disabled" />
+      </el-select>
+      <el-select v-model="filters.role" placeholder="用户角色" clearable @change="handleFilterChange">
+        <el-option label="管理员" value="admin" />
+        <el-option label="普通用户" value="user" />
+        <el-option label="访客" value="guest" />
+      </el-select>
+      <el-date-picker
+        v-model="filters.dateRange"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="YYYY-MM-DD"
+        :shortcuts="dateShortcuts"
+        @change="handleFilterChange"
+        :locale="zhCn"
+      />
+    </div>
 
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange" />
-      </div>
-    </el-card>
+    <!-- 数据表格 -->
+    <el-table
+      :data="currentPageData"
+      style="width: 100%"
+      v-loading="loading"
+      @sort-change="handleSortChange"
+    >
+      <el-table-column prop="id" label="ID" sortable="custom" width="80" />
+      <el-table-column prop="username" label="用户名" sortable="custom" />
+      <el-table-column prop="email" label="邮箱" sortable="custom" />
+      <el-table-column prop="role" label="角色" sortable="custom" width="120">
+        <template #default="{ row }">
+          <el-tag :type="getRoleTagType(row.role)">{{ getRoleLabel(row.role) }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" sortable="custom" width="120">
+        <template #default="{ row }">
+          <el-tag :type="getStatusTagType(row.status)">{{ getStatusLabel(row.status) }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="lastLogin" label="最后登录时间" sortable="custom" width="180">
+        <template #default="{ row }">
+          {{ formatDate(row.lastLogin) }}
+        </template>
+      </el-table-column>
+    </el-table>
 
-    <!-- 编辑对话框 -->
+    <!-- 分页 -->
+    <div class="pagination-container">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="totalItems"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+
+    <!-- 帮助对话框 -->
     <el-dialog
-      v-model="editDialogVisible"
-      title="编辑用户"
-      width="500px">
-      <el-form
-        ref="editForm"
-        :model="editForm"
-        :rules="formRules"
-        label-width="100px">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="editForm.username" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="editForm.email" />
-        </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="editForm.role">
-            <el-option label="管理员" value="admin" />
-            <el-option label="普通用户" value="user" />
-            <el-option label="访客" value="guest" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editForm.status">
-            <el-option label="活跃" value="active" />
-            <el-option label="非活跃" value="inactive" />
-            <el-option label="已禁用" value="disabled" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSave">
-            保存
-          </el-button>
-        </span>
-      </template>
+      v-model="showHelpDialog"
+      :title="helpDialogTitle"
+      :close-on-press-escape="true"
+      :show-close="true"
+      width="600px"
+    >
+      <div class="help-content markdown-body" v-html="renderedHelpContent"></div>
     </el-dialog>
-
-    <markdown-dialog
-      v-model:visible="helpVisible"
-      :title="helpTitle"
-      :content="helpContent" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { Search, Download, QuestionFilled } from '@element-plus/icons-vue'
 import { helpContent as helpContentData } from '../data/helpContent'
-import MarkdownDialog from '../components/MarkdownDialog.vue'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 // 表格数据
-const tableData = ref([
-  {
-    id: 1,
-    username: '张三',
-    email: 'zhangsan@example.com',
-    role: 'admin',
-    status: 'active',
-    lastLogin: '2024-03-20 10:30:00'
-  },
-  {
-    id: 2,
-    username: '李四',
-    email: 'lisi@example.com',
-    role: 'user',
-    status: 'inactive',
-    lastLogin: '2024-03-19 15:45:00'
-  },
-  {
-    id: 3,
-    username: '王五',
-    email: 'wangwu@example.com',
-    role: 'guest',
-    status: 'disabled',
-    lastLogin: '2024-03-18 09:20:00'
-  }
-  // 这里可以添加更多测试数据
-])
-
-// 加载状态
-const loading = ref(false)
+const tableData = ref([])
+const loading = ref(true)
 
 // 搜索和筛选
 const searchQuery = ref('')
@@ -216,46 +128,78 @@ const filters = ref({
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(100)
+const totalItems = computed(() => filteredTableData.value.length)
 
 // 排序
-const sortBy = ref('')
-const sortOrder = ref('')
-
-// 编辑表单
-const editDialogVisible = ref(false)
-const editForm = ref({
-  id: null,
-  username: '',
-  email: '',
-  role: '',
-  status: ''
+const sortConfig = ref({
+  prop: '',
+  order: ''
 })
 
-// 表单验证规则
-const formRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-  ],
-  role: [
-    { required: true, message: '请选择角色', trigger: 'change' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'change' }
-  ]
-}
-
-// 帮助弹窗
-const helpVisible = ref(false)
-const helpTitle = ref('')
+// 帮助对话框
+const showHelpDialog = ref(false)
+const helpDialogTitle = ref('')
 const helpContent = ref('')
 
-// 计算属性：过滤后的表格数据
+// 日期快捷选项
+const dateShortcuts = [
+  {
+    text: '最近一周',
+    value() {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+      return [start, end]
+    }
+  },
+  {
+    text: '最近一个月',
+    value() {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+      return [start, end]
+    }
+  },
+  {
+    text: '最近三个月',
+    value() {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+      return [start, end]
+    }
+  }
+]
+
+// 模拟获取数据
+const fetchData = async() => {
+  loading.value = true
+  try {
+    // 模拟API调用
+    const response = await new Promise(resolve => {
+      setTimeout(() => {
+        const data = Array.from({ length: 100 }, (_, index) => ({
+          id: index + 1,
+          username: `用户${index + 1}`,
+          email: `user${index + 1}@example.com`,
+          role: ['admin', 'user', 'guest'][Math.floor(Math.random() * 3)],
+          status: ['active', 'inactive', 'disabled'][Math.floor(Math.random() * 3)],
+          lastLogin: new Date(Date.now() - Math.random() * 10000000000).toISOString()
+        }))
+        resolve(data)
+      }, 1000)
+    })
+    tableData.value = response
+  } catch (error) {
+    console.error('获取数据失败:', error)
+    ElMessage.error('获取数据失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 计算筛选后的数据
 const filteredTableData = computed(() => {
   let data = [...tableData.value]
 
@@ -264,8 +208,8 @@ const filteredTableData = computed(() => {
     const query = searchQuery.value.toLowerCase()
     data = data.filter(item =>
       item.username.toLowerCase().includes(query) ||
-      item.email.toLowerCase().includes(query) ||
-      item.id.toString().includes(query)
+      item.id.toString().includes(query) ||
+      item.email.toLowerCase().includes(query)
     )
   }
 
@@ -281,40 +225,47 @@ const filteredTableData = computed(() => {
 
   // 日期范围过滤
   if (filters.value.dateRange && filters.value.dateRange.length === 2) {
-    const startDate = filters.value.dateRange[0]
-    const endDate = filters.value.dateRange[1]
+    const [start, end] = filters.value.dateRange
     data = data.filter(item => {
-      const itemDate = new Date(item.lastLogin)
-      return itemDate >= startDate && itemDate <= endDate
+      const loginDate = new Date(item.lastLogin).toISOString().split('T')[0]
+      return loginDate >= start && loginDate <= end
     })
   }
 
   // 排序
-  if (sortBy.value && sortOrder.value) {
+  if (sortConfig.value.prop && sortConfig.value.order) {
+    const { prop, order } = sortConfig.value
     data.sort((a, b) => {
-      if (sortOrder.value === 'ascending') {
-        return a[sortBy.value] > b[sortBy.value] ? 1 : -1
+      let compareResult = 0
+      if (prop === 'lastLogin') {
+        compareResult = new Date(a[prop]) - new Date(b[prop])
       } else {
-        return a[sortBy.value] < b[sortBy.value] ? 1 : -1
+        compareResult = a[prop] > b[prop] ? 1 : -1
       }
+      return order === 'ascending' ? compareResult : -compareResult
     })
   }
 
   return data
 })
 
-// 方法
+// 计算当前页数据
+const currentPageData = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize.value
+  return filteredTableData.value.slice(startIndex, startIndex + pageSize.value)
+})
+
+// 事件处理函数
 const handleSearch = () => {
   currentPage.value = 1
 }
 
-const handleFilter = () => {
+const handleFilterChange = () => {
   currentPage.value = 1
 }
 
 const handleSortChange = ({ prop, order }) => {
-  sortBy.value = prop
-  sortOrder.value = order
+  sortConfig.value = { prop, order }
 }
 
 const handleSizeChange = (val) => {
@@ -326,130 +277,179 @@ const handleCurrentChange = (val) => {
   currentPage.value = val
 }
 
-const handleEdit = (row) => {
-  editForm.value = { ...row }
-  editDialogVisible.value = true
-}
-
-const handleDelete = (row) => {
-  ElMessageBox.confirm(
-    '确定要删除该用户吗？',
-    '警告',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    // 这里添加删除逻辑
-    ElMessage({
-      type: 'success',
-      message: '删除成功'
-    })
-  }).catch(() => {})
-}
-
-const handleSave = () => {
-  // 这里添加保存逻辑
-  editDialogVisible.value = false
-  ElMessage({
-    type: 'success',
-    message: '保存成功'
+// 工具函数
+const formatDate = (date) => {
+  return new Date(date).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
   })
+}
+
+const getRoleLabel = (role) => {
+  const roleMap = {
+    admin: '管理员',
+    user: '普通用户',
+    guest: '访客'
+  }
+  return roleMap[role] || role
+}
+
+const getStatusLabel = (status) => {
+  const statusMap = {
+    active: '活跃',
+    inactive: '非活跃',
+    disabled: '已禁用'
+  }
+  return statusMap[status] || status
+}
+
+const getRoleTagType = (role) => {
+  const typeMap = {
+    admin: 'danger',
+    user: '',
+    guest: 'info'
+  }
+  return typeMap[role]
+}
+
+const getStatusTagType = (status) => {
+  const typeMap = {
+    active: 'success',
+    inactive: 'warning',
+    disabled: 'info'
+  }
+  return typeMap[status]
+}
+
+const showHelp = () => {
+  helpDialogTitle.value = '数据列表使用帮助'
+  helpContent.value = helpContentData.dataList
+  showHelpDialog.value = true
+}
+
+// CSV 导出相关函数
+const convertToCSV = (data) => {
+  const headers = ['ID', '用户名', '邮箱', '角色', '状态', '最后登录时间']
+  const csvRows = []
+  csvRows.push(headers.join(','))
+  data.forEach(item => {
+    const row = [
+      item.id,
+      `"${item.username}"`,
+      `"${item.email}"`,
+      `"${getRoleLabel(item.role)}"`,
+      `"${getStatusLabel(item.status)}"`,
+      `"${formatDate(item.lastLogin)}"`
+    ]
+    csvRows.push(row.join(','))
+  })
+  return csvRows.join('\n')
+}
+
+const downloadCSV = (csvContent, filename) => {
+  const BOM = '\uFEFF'
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 const exportData = () => {
-  // 这里添加导出逻辑
-  ElMessage({
-    type: 'success',
-    message: '导出成功'
-  })
-}
-
-const showHelp = (type) => {
-  helpContent.value = helpContentData[type]
-  helpTitle.value = '数据列表使用说明'
-  helpVisible.value = true
-}
-
-// 工具方法
-const formatDate = (date) => {
-  return new Date(date).toLocaleString()
-}
-
-const getRoleType = (role) => {
-  const types = {
-    admin: 'danger',
-    user: 'success',
-    guest: 'info'
+  try {
+    const dataToExport = filteredTableData.value
+    if (dataToExport.length === 0) {
+      ElMessage({
+        type: 'warning',
+        message: '没有可导出的数据'
+      })
+      return
+    }
+    const csvContent = convertToCSV(dataToExport)
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const filename = `用户数据_${timestamp}.csv`
+    downloadCSV(csvContent, filename)
+    ElMessage({
+      type: 'success',
+      message: '导出成功'
+    })
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage({
+      type: 'error',
+      message: '导出失败，请稍后重试'
+    })
   }
-  return types[role] || 'info'
 }
 
-const getStatusType = (status) => {
-  const types = {
-    active: 'success',
-    inactive: 'warning',
-    disabled: 'danger'
-  }
-  return types[status] || 'info'
-}
+// 帮助内容渲染
+const renderedHelpContent = computed(() => {
+  return DOMPurify.sanitize(marked(helpContent.value))
+})
 
+// 初始化
 onMounted(() => {
-  // 这里可以添加初始数据加载逻辑
+  fetchData()
 })
 </script>
 
 <style scoped>
-.datalist-container {
+.data-list-container {
   padding: 20px;
 }
 
-.table-card {
-  margin-bottom: 20px;
-}
-
-.card-header {
+.header-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.header-left h3 {
+.page-title {
   margin: 0;
-  margin-right: 10px;
+  font-size: 24px;
+  color: var(--el-text-color-primary);
 }
 
-.header-right {
+.header-buttons {
   display: flex;
+  gap: 12px;
+}
+
+.search-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
   align-items: center;
-  gap: 10px;
+  flex-wrap: nowrap;
 }
 
 .search-input {
-  width: 300px;
-}
-
-.filter-section {
-  margin-bottom: 20px;
-  padding: 20px 0;
-  border-bottom: 1px solid #ebeef5;
+  width: 240px;
 }
 
 .pagination-container {
   margin-top: 20px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+:deep(.el-table .cell) {
+  white-space: nowrap;
+}
+
+:deep(.help-content) {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0 20px;
+}
+
+:deep(.markdown-body) {
+  font-family: var(--el-font-family);
 }
 </style>
