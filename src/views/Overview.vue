@@ -17,7 +17,8 @@
           <div class="card-content">
             <div class="value">{{ totalVisits }}</div>
             <div class="trend" :class="{ 'up': visitsTrend > 0, 'down': visitsTrend < 0 }">
-              {{ Math.abs(visitsTrend) }}%
+              <span>较昨日</span>
+              {{ visitsTrend > 0 ? '+' : '' }}{{ visitsTrend }}%
               <el-icon><component :is="visitsTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
             </div>
           </div>
@@ -39,7 +40,8 @@
           <div class="card-content">
             <div class="value">{{ activeUsers }}</div>
             <div class="trend" :class="{ 'up': usersTrend > 0, 'down': usersTrend < 0 }">
-              {{ Math.abs(usersTrend) }}%
+              <span>较昨日</span>
+              {{ usersTrend > 0 ? '+' : '' }}{{ usersTrend }}%
               <el-icon><component :is="usersTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
             </div>
           </div>
@@ -61,7 +63,8 @@
           <div class="card-content">
             <div class="value">{{ conversionRate }}%</div>
             <div class="trend" :class="{ 'up': conversionTrend > 0, 'down': conversionTrend < 0 }">
-              {{ Math.abs(conversionTrend) }}%
+              <span>较昨日</span>
+              {{ conversionTrend > 0 ? '+' : '' }}{{ conversionTrend }}%
               <el-icon><component :is="conversionTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
             </div>
           </div>
@@ -94,7 +97,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { helpContent } from '../data/helpContent'
+import { helpContent as helpContentData } from '../data/helpContent'
 import MarkdownDialog from '../components/MarkdownDialog.vue'
 
 // 数据
@@ -112,17 +115,25 @@ let chart = null
 onMounted(() => {
   chart = echarts.init(chartContainer.value)
   const option = {
+    title: {
+      text: '近7天访问趋势'
+    },
+    tooltip: {
+      trigger: 'axis'
+    },
     xAxis: {
       type: 'category',
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
+      name: '访问量'
     },
     series: [{
       data: [820, 932, 901, 934, 1290, 1330, 1320],
       type: 'line',
-      smooth: true
+      smooth: true,
+      areaStyle: {}
     }]
   }
   chart.setOption(option)
@@ -149,7 +160,7 @@ const helpTitle = ref('')
 const helpContent = ref('')
 
 const showHelp = (type) => {
-  helpContent.value = helpContent[type]
+  helpContent.value = helpContentData[type]
   switch (type) {
     case 'totalVisits':
       helpTitle.value = '总访问量说明'
@@ -189,8 +200,9 @@ const showHelp = (type) => {
 }
 
 .value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
+  color: #303133;
   margin-bottom: 10px;
 }
 
@@ -199,6 +211,11 @@ const showHelp = (type) => {
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  color: #909399;
+}
+
+.trend span {
+  margin-right: 8px;
 }
 
 .trend.up {
