@@ -16,10 +16,12 @@
           </template>
           <div class="card-content">
             <div class="value">{{ totalVisits }}</div>
+            <div class="yesterday-value">昨日：{{ yesterdayVisits }}</div>
             <div class="trend" :class="{ 'up': visitsTrend > 0, 'down': visitsTrend < 0 }">
-              <span>较昨日</span>
+              <span class="compare-label">较昨日</span>
               {{ visitsTrend > 0 ? '+' : '' }}{{ visitsTrend }}%
-              <el-icon><component :is="visitsTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+              <el-icon v-if="visitsTrend > 0" class="trend-icon"><CaretTop /></el-icon>
+              <el-icon v-else class="trend-icon"><CaretBottom /></el-icon>
             </div>
           </div>
         </el-card>
@@ -39,10 +41,12 @@
           </template>
           <div class="card-content">
             <div class="value">{{ activeUsers }}</div>
+            <div class="yesterday-value">昨日：{{ yesterdayUsers }}</div>
             <div class="trend" :class="{ 'up': usersTrend > 0, 'down': usersTrend < 0 }">
-              <span>较昨日</span>
+              <span class="compare-label">较昨日</span>
               {{ usersTrend > 0 ? '+' : '' }}{{ usersTrend }}%
-              <el-icon><component :is="usersTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+              <el-icon v-if="usersTrend > 0" class="trend-icon"><CaretTop /></el-icon>
+              <el-icon v-else class="trend-icon"><CaretBottom /></el-icon>
             </div>
           </div>
         </el-card>
@@ -62,10 +66,12 @@
           </template>
           <div class="card-content">
             <div class="value">{{ conversionRate }}%</div>
+            <div class="yesterday-value">昨日：{{ yesterdayConversion }}%</div>
             <div class="trend" :class="{ 'up': conversionTrend > 0, 'down': conversionTrend < 0 }">
-              <span>较昨日</span>
+              <span class="compare-label">较昨日</span>
               {{ conversionTrend > 0 ? '+' : '' }}{{ conversionTrend }}%
-              <el-icon><component :is="conversionTrend > 0 ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
+              <el-icon v-if="conversionTrend > 0" class="trend-icon"><CaretTop /></el-icon>
+              <el-icon v-else class="trend-icon"><CaretBottom /></el-icon>
             </div>
           </div>
         </el-card>
@@ -95,10 +101,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import * as echarts from 'echarts'
 import { helpContent as helpContentData } from '../data/helpContent'
 import MarkdownDialog from '../components/MarkdownDialog.vue'
+import { CaretTop, CaretBottom, QuestionFilled } from '@element-plus/icons-vue'
 
 // 数据
 const totalVisits = ref(12345)
@@ -107,6 +114,19 @@ const activeUsers = ref(3456)
 const usersTrend = ref(-8)
 const conversionRate = ref(25)
 const conversionTrend = ref(12)
+
+// 计算昨日数据
+const yesterdayVisits = computed(() => {
+  return Math.round(totalVisits.value / (1 + visitsTrend.value / 100))
+})
+
+const yesterdayUsers = computed(() => {
+  return Math.round(activeUsers.value / (1 + usersTrend.value / 100))
+})
+
+const yesterdayConversion = computed(() => {
+  return Math.round((conversionRate.value / (1 + conversionTrend.value / 100)) * 10) / 10
+})
 
 // 图表相关
 const chartContainer = ref(null)
@@ -200,30 +220,47 @@ const showHelp = (type) => {
 }
 
 .value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: bold;
   color: #303133;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+}
+
+.yesterday-value {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
 }
 
 .trend {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 18px;
   color: #909399;
+  margin-top: 5px;
 }
 
-.trend span {
+.trend .compare-label {
   margin-right: 8px;
+  font-weight: bold;
+  color: #606266;
 }
 
 .trend.up {
   color: #67C23A;
+  font-weight: bold;
 }
 
 .trend.down {
   color: #F56C6C;
+  font-weight: bold;
+}
+
+.trend .trend-icon {
+  margin-left: 4px;
+  font-size: 22px;
+  font-weight: bold;
 }
 
 .chart-card {
