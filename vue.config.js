@@ -6,12 +6,20 @@ module.exports = defineConfig({
   configureWebpack: {
     target: process.env.ELECTRON ? 'electron-renderer' : 'web',
     optimization: {
-      // 禁用代码分割
       splitChunks: false
     }
   },
-  // 完全禁用CSS提取，将所有CSS内联到JS中
   css: {
-    extract: false
+    extract: process.env.NODE_ENV === 'production' // 仅在生产环境下提取 CSS
+  },
+  chainWebpack: config => {
+    if (process.env.NODE_ENV === 'development') {
+      config.plugin('html').tap(args => {
+        args[0].templateParameters = {
+          BASE_URL: './'
+        }
+        return args
+      })
+    }
   }
 })

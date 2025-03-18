@@ -6,6 +6,8 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    autoHideMenuBar: true, // 自动隐藏菜单栏
+    resizable: false, // 禁止窗口缩放
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -13,14 +15,24 @@ function createWindow() {
     }
   })
 
+  // 模拟全屏效果
+  win.maximize()
+
+  // 监听 Esc 键退出全屏
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape') {
+      win.unmaximize()
+    }
+  })
+
   if (isDev) {
-    // 开发环境下加载开发服务器地址
-    win.loadURL('http://localhost:8080/#/overview')
-    // 打开开发者工具
+    win.loadURL('http://localhost:8080')
     win.webContents.openDevTools()
   } else {
-    // 生产环境下加载本地文件
     win.loadFile(path.join(__dirname, '../dist/index.html'))
+    win.webContents.on('devtools-opened', () => {
+      win.webContents.closeDevTools()
+    })
   }
 }
 
