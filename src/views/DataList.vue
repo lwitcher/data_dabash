@@ -400,7 +400,7 @@ onMounted(() => {
 
 <style scoped>
 .data-list-container {
-  padding: 20px;
+  padding: 5px 20px 20px 20px;
 }
 
 .header-actions {

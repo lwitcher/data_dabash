@@ -5,7 +5,31 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "electron:serve": "concurrently \"vue-cli-service serve\" \"wait-on http://localhost:8080 && electron .\"",
+    "electron:build": "vue-cli-service build && electron-builder"
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.data-dashboard.app",
+    "productName": "数据分析面板",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "language": "2052",
+      "perMachine": true,
+      "createDesktopShortcut": true
+    }
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -26,10 +50,14 @@
     "@vue/cli-service": "^5.0.8",
     "@vue/compiler-sfc": "^3.3.4",
     "@vue/eslint-config-standard": "^8.0.1",
+    "concurrently": "^9.1.2",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-vue": "^9.22.0"
+    "eslint-plugin-vue": "^9.22.0",
+    "wait-on": "^8.0.3"
   }
 }

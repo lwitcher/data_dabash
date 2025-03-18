@@ -11,20 +11,38 @@
             :default-active="activeMenu"
             :collapse="isCollapse"
             class="el-menu-vertical">
-            <el-menu-item index="/overview" class="menu-item">
-              <el-icon><DataLine /></el-icon>
-              <span>数据概览</span>
-            </el-menu-item>
+            <el-tooltip
+              :disabled="!isCollapse"
+              effect="dark"
+              content="数据概览"
+              placement="right">
+              <el-menu-item index="/overview" class="menu-item">
+                <el-icon><DataLine /></el-icon>
+                <span>数据概览</span>
+              </el-menu-item>
+            </el-tooltip>
             <el-divider />
-            <el-menu-item index="/analysis" class="menu-item">
-              <el-icon><PieChart /></el-icon>
-              <span>统计分析</span>
-            </el-menu-item>
+            <el-tooltip
+              :disabled="!isCollapse"
+              effect="dark"
+              content="统计分析"
+              placement="right">
+              <el-menu-item index="/analysis" class="menu-item">
+                <el-icon><PieChart /></el-icon>
+                <span>统计分析</span>
+              </el-menu-item>
+            </el-tooltip>
             <el-divider />
-            <el-menu-item index="/data-list" class="menu-item">
-              <el-icon><List /></el-icon>
-              <span>数据列表</span>
-            </el-menu-item>
+            <el-tooltip
+              :disabled="!isCollapse"
+              effect="dark"
+              content="数据列表"
+              placement="right">
+              <el-menu-item index="/data-list" class="menu-item">
+                <el-icon><List /></el-icon>
+                <span>数据列表</span>
+              </el-menu-item>
+            </el-tooltip>
           </el-menu>
           <div class="collapse-btn" @click="toggleCollapse">
             <el-icon><Fold v-if="!isCollapse"/><Expand v-else/></el-icon>

@@ -190,7 +190,7 @@ const showHelp = (type) => {
 
 <style scoped>
 .analysis-container {
-  padding: 20px;
+  padding: 5px 20px 20px 20px;
 }
 
 .chart-card {
@@ -198,7 +198,7 @@ const showHelp = (type) => {
 }
 
 .chart-row {
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 .card-header {

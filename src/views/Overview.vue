@@ -201,7 +201,7 @@ const showHelp = (type) => {
 
 <style scoped>
 .overview-container {
-  padding: 20px;
+  padding: 5px 20px 20px 20px;  /* 修改上内边距为5px，其他保持不变 */
 }
 
 .data-card {
@@ -264,7 +264,7 @@ const showHelp = (type) => {
 }
 
 .chart-card {
-  margin-top: 20px;
+  margin-top: 3px;  /* 从20px改为10px */
 }
 
 .chart-container {
